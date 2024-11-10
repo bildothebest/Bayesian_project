@@ -11,23 +11,23 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Load the data with dates parsed in day-first format
-data = pd.read_csv('EU_Countries_Cases.csv', dayfirst=True)
+data = pd.read_csv('Asia_Countries_Cases.csv', dayfirst=True)
 
-# Filter data for Italy
-italy_data = data[data['geoId'] == 'IT']  # select only Italian data
+# Filter data for Switzerland
+CH_data = data[data['geoId'] == 'CH']  # select only Swiss data
 
 # Convert 'dateRep' column to datetime if needed and handle potential errors
-italy_data['dateRep'] = pd.to_datetime(italy_data['dateRep'], dayfirst=True, errors='coerce')
+CH_data['dateRep'] = pd.to_datetime(CH_data['dateRep'], dayfirst=True, errors='coerce')
 
 # Extract dates and cases
-dates = italy_data['dateRep']
-cases = italy_data['cases'].astype(float).values  # Ensure cases are in numeric format
+dates = CH_data['dateRep']
+cases = CH_data['cases'].astype(float).values  # Ensure cases are in numeric format
 
 # Time points in days
 t = np.arange(len(cases))
 
 # Total population
-N = 60_000_000
+N = 8_600_000
 
 
 # SIR model differential equations
