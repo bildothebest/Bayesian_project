@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Nov 10 04:39:26 2024
-
-@author: Ninja
-"""
-
 import numpy as np
 import pandas as pd
 from scipy.integrate import odeint
