@@ -142,3 +142,29 @@ plt.title('SIR Model Fit to COVID-19 Data in Switzerland')
 plt.legend()
 plt.grid()
 plt.show()
+
+
+
+# Extract the samples for each parameter after burn-in (discard the first 200 steps)
+samples = sampler.get_chain(discard=int(nsteps*0.2), flat=False)
+
+# Trace plot for each parameter
+fig, axes = plt.subplots(3, figsize=(10, 7), sharex=True)
+labels = ["beta", "gamma", "log-likelihood"]
+for i in range(2):
+    ax = axes[i]
+    ax.plot(samples[:, :, i], "k", alpha=0.3)
+    ax.set_xlim(0, samples.shape[0])
+    ax.set_ylabel(labels[i])
+    ax.grid()
+
+# Plot the log-likelihood trace
+log_prob_samples = sampler.get_log_prob(discard=int(nsteps*0.2), flat=False)
+axes[2].plot(log_prob_samples, "k", alpha=0.3)
+axes[2].set_ylabel("Log-likelihood")
+axes[2].set_xlabel("Step number")
+axes[2].grid()
+
+plt.tight_layout()
+plt.show()
+
