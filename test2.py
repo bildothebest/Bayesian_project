@@ -114,8 +114,11 @@ print("Running MCMC...")
 sampler.run_mcmc(pos, nsteps, progress=True)
 print("Done.")
 
+#set how many steps are discarded
+discard=int(nsteps*0.2)
+
 # Get the samples
-samples = sampler.get_chain(discard=200, thin=15, flat=True)
+samples = sampler.get_chain(discard=discard, thin=15, flat=True)
 print(f"Number of samples: {samples.shape[0]}")
 
 # Plot the posterior distributions
@@ -147,9 +150,8 @@ plt.grid()
 plt.show()
 
 
-
 # Extract the samples for each parameter after burn-in (discard the first 200 steps)
-samples = sampler.get_chain(discard=int(nsteps*0.2), flat=False)
+samples = sampler.get_chain(discard=discard, flat=False)
 
 # Trace plot for each parameter
 fig, axes = plt.subplots(3, figsize=(10, 7), sharex=True)
@@ -162,7 +164,7 @@ for i in range(2):
     ax.grid()
 
 # Plot the log-likelihood trace
-log_prob_samples = sampler.get_log_prob(discard=int(nsteps*0.2), flat=False)
+log_prob_samples = sampler.get_log_prob(discard=discard, flat=False)
 axes[2].plot(log_prob_samples, "k", alpha=0.3)
 axes[2].set_ylabel("Log-likelihood")
 axes[2].set_xlabel("Step number")
