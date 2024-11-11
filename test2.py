@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Nov 10 04:47:01 2024
-
-@author: Ninja
-"""
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -16,15 +9,26 @@ import os
 
 # Set working directory to the folder where the script is located
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-# Load the data
-data = pd.read_csv('switzerland_data.csv')
-# Ensure the data has columns 'Date' and 'Cases'
-dates = pd.to_datetime(data['Date'])
-cases = data['Infected'].values
-t = np.arange(len(cases))  # Time points in days
 
-# Total population, N (Switzerland's population)
-N = 8_600_000
+# Load the data with dates parsed in day-first format
+data = pd.read_csv('EU_Countries_Cases.csv', dayfirst=True)
+
+# Filter data for Italy
+italy_data = data[data['geoId'] == 'IT']  # select only Italian data
+
+# Convert 'dateRep' column to datetime if needed and handle potential errors
+italy_data['dateRep'] = pd.to_datetime(italy_data['dateRep'], dayfirst=True, errors='coerce')
+
+# Extract dates and cases
+dates = italy_data['dateRep']
+cases = italy_data['cases'].astype(float).values  # Ensure cases are in numeric format
+
+# Time points in days
+t = np.arange(len(cases))
+
+# Total population
+N = 60_000_000
+
 
 # SIR model differential equations
 def sir_model(y, t, beta, gamma, N):
@@ -32,7 +36,7 @@ def sir_model(y, t, beta, gamma, N):
     dSdt = -beta * S * I / N
     dIdt = beta * S * I / N - gamma * I
     dRdt = gamma * I
-    return [dSdt, dIdt, dRdt]
+    return [dSdt, dIdt, dRdt] #Sistema di differenziali
 
 # Function to integrate the SIR equations
 def run_sir_model(t, beta, gamma, N, I0):
@@ -41,7 +45,7 @@ def run_sir_model(t, beta, gamma, N, I0):
     y0 = [S0, I0, R0]
     ret = odeint(sir_model, y0, t, args=(beta, gamma, N))
     S, I, R = ret.T
-    return S, I, R
+    return S, I, R #Soluzioni delle differenziali given initial conditions
 
 # Log-likelihood function
 def log_likelihood(theta, t, N, cases):
@@ -49,7 +53,7 @@ def log_likelihood(theta, t, N, cases):
     # Check for valid parameter values
     if beta <= 0 or gamma <= 0 or beta >= 1 or gamma >= 1:
         return -np.inf
-    I0 = cases[0]  # Initial number of infected individuals
+    I0 = cases[0] # Initial number of infected individuals
     S0 = N - I0
     R0 = 0
     y0 = [S0, I0, R0]
@@ -62,7 +66,7 @@ def log_likelihood(theta, t, N, cases):
     sigma = 1.0  # Assumed standard deviation of measurement errors
     # Calculate the log-likelihood
     ll = -0.5 * np.sum(((cases - C) / sigma)**2 + np.log(2 * np.pi * sigma**2))
-    return ll
+    return ll #log(likelyhood) funzione dei parametri 
 
 
 def log_prior(theta):
@@ -70,11 +74,10 @@ def log_prior(theta):
     # Uniform prior for beta
     if not (0 < beta < 1):
         return -np.inf
-    # Gaussian prior for gamma centered at 1/7 with a standard deviation of 0.05
-    gamma_mean = 1 / 7
-    gamma_std = 0.05
-    log_prior_gamma = norm.logpdf(gamma, gamma_mean, gamma_std)
-    return log_prior_gamma  # Combine priors for beta and gamma
+    # Uniform prior for gamma
+    if not (1/14 < gamma < 1/5):
+        return -np.inf
+    return 0  # Combine priors for beta and gamma
 
 
 # Log-posterior function
@@ -104,7 +107,7 @@ pos = [np.array([initial_beta, initial_gamma]) + 1e-4 * np.random.randn(ndim) fo
 sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(t, N, cases))
 
 # Number of steps
-nsteps = 1000
+nsteps = 5000
 
 # Run MCMC
 print("Running MCMC...")
