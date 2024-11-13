@@ -15,19 +15,30 @@ data = pd.read_csv('Asia_Countries_Cases.csv', dayfirst=True)
 
 # Filter data for Switzerland
 CH_data = data[data['geoId'] == 'CH']  # select only Swiss data
-
+CH_data.loc[:, 'Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'] = (
+    CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].astype(float)
+)
 # Convert 'dateRep' column to datetime if needed and handle potential errors
 CH_data['dateRep'] = pd.to_datetime(CH_data['dateRep'], dayfirst=True, errors='coerce')
 
 # Extract dates and cases
 dates = CH_data['dateRep']
-cases = CH_data['cases'].astype(float).values  # Ensure cases are in numeric format
+cases = CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].astype(float).values  # Ensure cases are in numeric format
 
+dates=dates[::-1]
+cases=cases[::-1]
+
+dates=dates[61:]
+
+cases=cases[61:]
+
+dates_march=dates[5:36]
+cases_march=cases[5:36]
 # Time points in days
-t = np.arange(len(cases))
+t = np.arange(len(cases_march))
 
 # Total population
-N = 8_600_000
+N = 100000
 
 
 # SIR model differential equations
@@ -75,7 +86,7 @@ def log_prior(theta):
     if not (0 < beta < 1):
         return -np.inf
     # Uniform prior for gamma
-    if not (1/14 < gamma < 1/5):
+    if not (1/16 < gamma < 1/12):
         return -np.inf
     return 0  # Combine priors for beta and gamma
 
@@ -92,7 +103,7 @@ def log_posterior(theta, t, N, cases):
 
 # Initial guesses for beta and gamma
 initial_beta = 0.4
-initial_gamma = 0.1
+initial_gamma = 0.07142
 
 # Number of dimensions (parameters)
 ndim = 2
@@ -104,7 +115,7 @@ nwalkers = 50
 pos = [np.array([initial_beta, initial_gamma]) + 1e-4 * np.random.randn(ndim) for i in range(nwalkers)]
 
 # Set up the sampler
-sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(t, N, cases))
+sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(t, N, cases_march))
 
 # Number of steps
 nsteps = 1000
@@ -121,7 +132,7 @@ print(f"Number of samples: {samples.shape[0]}")
 R0=samples[:,0]/samples[:,1]
 samples=np.column_stack((samples, R0))
 # Plot the posterior distributions
-fig = corner.corner(samples, labels=["beta", "gamma", 'R0'], truths=[initial_beta, initial_gamma])
+fig = corner.corner(samples, labels=["beta", "gamma", 'R0'])
 plt.show()
 
 # Compute and print the mean and standard deviation of the parameters
@@ -135,13 +146,13 @@ print(f"Estimated R0: {R0_mcmc:.4f} ± {R0_std:.4f}")
 best_beta = beta_mcmc
 best_gamma = gamma_mcmc
 
-S_pred, I_pred, R_pred = run_sir_model(t, best_beta, best_gamma, N, cases[0])
+S_pred, I_pred, R_pred = run_sir_model(t, best_beta, best_gamma, N, cases_march[0])
 C_pred = N - S_pred  # Cumulative cases predicted
 
 # Plot the observed data and the model prediction
 plt.figure(figsize=(12, 6))
-plt.plot(dates, cases, 'o', label='Observed cases')
-plt.plot(dates, C_pred, '-', label='Predicted cases')
+plt.plot(dates_march, cases_march, 'o', label='Observed cases')
+plt.plot(dates_march, C_pred, '-', label='Predicted cases')
 plt.xlabel('Date')
 plt.ylabel('Cumulative number of cases')
 plt.title('SIR Model Fit to COVID-19 Data in Switzerland')
