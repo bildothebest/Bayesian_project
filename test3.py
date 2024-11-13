@@ -6,6 +6,9 @@ from scipy.stats import norm
 import emcee
 import corner
 import os
+from IPython import get_ipython  # For IPython utilities
+
+get_ipython().run_line_magic('matplotlib', 'inline')
 
 # Set working directory to the folder where the script is located
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -32,13 +35,23 @@ dates=dates[61:]
 
 cases=cases[61:]
 
-dates_march=dates[5:36]
-cases_march=cases[5:36]
+# Plot the observed data and the model prediction
+plt.figure(figsize=(12, 6))
+plt.plot(dates, cases, 'o', label='Observed cases')
+plt.xlabel('Date')
+plt.ylabel('Cumulative number of cases')
+plt.title('SIR Model Fit to COVID-19 Data in Switzerland')
+plt.legend()
+plt.grid()
+plt.show()
+
+dates_march=dates[0:31]
+cases_march=cases[0:31]*90
 # Time points in days
 t = np.arange(len(cases_march))
 
 # Total population
-N = 100000
+N = 100000*90
 
 
 # SIR model differential equations
@@ -73,10 +86,11 @@ def log_likelihood(theta, t, N, cases):
         S, I, R = ret.T
     except:
         return -np.inf
-    C = N - S  # Cumulative cases
+
+
     sigma = 1.0  # Assumed standard deviation of measurement errors
     # Calculate the log-likelihood
-    ll = -0.5 * np.sum(((cases - C) / sigma)**2 + np.log(2 * np.pi * sigma**2))
+    ll = -0.5 * np.sum(((cases - I) / sigma)**2 + np.log(2 * np.pi * sigma**2))
     return ll #log(likelyhood) funzione dei parametri 
 
 
@@ -147,7 +161,7 @@ best_beta = beta_mcmc
 best_gamma = gamma_mcmc
 
 S_pred, I_pred, R_pred = run_sir_model(t, best_beta, best_gamma, N, cases_march[0])
-C_pred = N - S_pred  # Cumulative cases predicted
+C_pred = I_pred  # Cumulative cases predicted
 
 # Plot the observed data and the model prediction
 plt.figure(figsize=(12, 6))
