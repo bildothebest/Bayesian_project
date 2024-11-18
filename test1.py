@@ -73,6 +73,3 @@ plt.xlabel("Parameter values")
 plt.ylabel("Frequency")
 plt.title("Posterior distributions of SIR parameters")
 plt.show()
-
-
-#Febo
