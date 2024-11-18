@@ -107,7 +107,7 @@ pos = [np.array([initial_beta, initial_gamma]) + 1e-4 * np.random.randn(ndim) fo
 sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(t, N, cases))
 
 # Number of steps
-nsteps = 5000
+nsteps = 1000
 
 # Run MCMC
 print("Running MCMC...")
