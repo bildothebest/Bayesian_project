@@ -8,7 +8,6 @@ import corner
 import os
 from IPython import get_ipython  # For IPython utilities
 
-get_ipython().run_line_magic('matplotlib', 'inline')
 
 # Set working directory to the folder where the script is located
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
