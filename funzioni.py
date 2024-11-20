@@ -100,7 +100,7 @@ def switzerland_data():
 
 
 
-
+#fanculo
 
 def analisi_del_migaele_e_GPT(dates, cases, initial_beta, population,initial_gamma, ndim, nwalkers, nsteps):
     t = np.arange(len(dates))
