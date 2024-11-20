@@ -71,3 +71,35 @@ def log_posterior(theta, t, N, cases):
     if not np.isfinite(ll):
         return -np.inf
     return lp + ll
+
+
+def switzerland_data():
+        # Set working directory to the folder where the script is located
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    # Load the data with dates parsed in day-first format
+    data = pd.read_csv('Asia_Countries_Cases.csv', dayfirst=True)
+
+    # Filter data for Switzerland
+    CH_data = data[data['geoId'] == 'CH']
+    CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'] = (
+        CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].astype(float)
+    )
+
+    # Convert 'dateRep' column to datetime if needed and handle potential errors
+    CH_data.loc[:, 'dateRep'] = pd.to_datetime(CH_data['dateRep'], dayfirst=True, errors='coerce')
+
+    # Extract dates and cases
+    dates = CH_data['dateRep'].values
+    cases = CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].values
+
+    # Invert and slice
+    dates = dates[::-1][61:]
+    cases = cases[::-1][61:]
+
+
+
+
+   
+
+    return dates, cases
