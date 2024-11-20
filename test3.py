@@ -8,44 +8,13 @@ from scipy.stats import norm
 import emcee
 import corner
 import os
-from funzioni import sir_model, run_sir_model, log_likelihood, log_prior, log_posterior
+from funzioni import sir_model, run_sir_model, log_likelihood, log_prior, log_posterior, switzerland_data
 
 
-# Set working directory to the folder where the script is located
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-# Load the data with dates parsed in day-first format
-data = pd.read_csv('Asia_Countries_Cases.csv', dayfirst=True)
-
-# Filter data for Switzerland
-CH_data = data[data['geoId'] == 'CH']  # select only Swiss data
-CH_data.loc[:, 'Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'] = (
-    CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].astype(float)
-)
-# Convert 'dateRep' column to datetime if needed and handle potential errors
-CH_data['dateRep'] = pd.to_datetime(CH_data['dateRep'], dayfirst=True, errors='coerce')
-
-# Extract dates and cases
-dates = CH_data['dateRep']
-cases = CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].astype(float).values  # Ensure cases are in numeric format
-
-dates=dates[::-1]
-cases=cases[::-1]
-
-dates=dates[61:]
-
-cases=cases[61:]
+dates, cases=switzerland_data()
 
 
-# Plot the observed data and the model prediction
-plt.figure(figsize=(12, 6))
-plt.plot(dates, cases, 'o', label='Observed cases')
-plt.xlabel('Date')
-plt.ylabel('Cumulative number of cases')
-plt.title('SIR Model Fit to COVID-19 Data in Switzerland')
-plt.legend()
-plt.grid()
-plt.show()
+
 
 dates_march=dates[0:31]
 cases_march=cases[0:31]*90

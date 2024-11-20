@@ -6,68 +6,16 @@ from scipy.stats import norm
 import emcee
 import corner
 import os
-from funzioni import sir_model, run_sir_model, log_likelihood, log_prior, log_posterior
+from funzioni import sir_model, run_sir_model, log_likelihood, log_prior, log_posterior, switzerland_data
 
 
 
-# Set working directory to the folder where the script is located
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-# Load the data with dates parsed in day-first format
-data = pd.read_csv('Asia_Countries_Cases.csv', dayfirst=True)
-
-# Filter data for Switzerland
-CH_data = data[data['geoId'] == 'CH']
-CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'] = (
-    CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].astype(float)
-)
-
-# Convert 'dateRep' column to datetime if needed and handle potential errors
-CH_data.loc[:, 'dateRep'] = pd.to_datetime(CH_data['dateRep'], dayfirst=True, errors='coerce')
-
-# Extract dates and cases
-dates = CH_data['dateRep'].values
-cases = CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].values
-
-# Invert and slice
-dates = dates[::-1][61:]
-cases = cases[::-1][61:]
-
-# Plot the observed data
-plt.figure(figsize=(12, 6))
-plt.plot(dates, cases, 'o', label='Observed cases')
-plt.xlabel('Date')
-plt.ylabel('Cumulative number of cases')
-plt.title('COVID-19 Data in Switzerland')
-plt.legend()
-plt.grid()
-plt.show()
-
-# Find local maxima and minima
-window_size = 5
-
-local_maxima_indices = [
-    i for i in range(window_size, len(cases) - window_size)
-    if cases[i] == max(cases[i - window_size:i + window_size + 1])
-]
-
-local_minima_indices = [
-    i for i in range(window_size, len(cases) - window_size)
-    if cases[i] == min(cases[i - window_size:i + window_size + 1])
-]
-
-local_maxima = [(dates[i], cases[i]) for i in local_maxima_indices]
-local_minima = [(dates[i], cases[i]) for i in local_minima_indices]
 
 
+dates, cases=switzerland_data()
 
-local_maxima=np.array(local_maxima)
-local_minima=np.array(local_minima)
+cases=cases*90
 
-all_extrema = np.concatenate((local_maxima, local_minima))
-
-print("estremi")
-print(all_extrema)
 
 
 all_extrema = np.array([
