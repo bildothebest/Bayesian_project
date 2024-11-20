@@ -13,13 +13,23 @@ from funzioni import sir_model, run_sir_model, log_likelihood, log_prior, log_po
 
 dates, cases=switzerland_data()
 
-
+ # Plot the observed data
+plt.figure(figsize=(12, 6))
+plt.plot(dates, cases, 'o', label='Observed cases')
+plt.xlabel('Date')
+plt.ylabel('Cumulative number of cases')
+plt.title('COVID-19 Data in Switzerland')
+plt.legend()
+plt.grid()
+plt.show()
 
 
 dates_march=dates[0:31]
 cases_march=cases[0:31]*90
 # Time points in days
 
+print(dates_march)
+print(cases_march)
 
 t = np.arange(len(cases_march))
 
