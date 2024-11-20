@@ -100,23 +100,7 @@ def switzerland_data():
 
 
 
-# Total population
-    N = 100000*90
-
-
-
-    # Initial guesses for beta and gamma
-    initial_beta = 0.4
-    initial_gamma = 0.07142
-
-    # Number of dimensions (parameters)
-    ndim = 2
-
-    # Number of walkers
-    nwalkers = 50
-
-    # Number of steps
-    nsteps = 1000
+#fanculo
 
 def analisi_del_migaele_e_GPT(dates, cases, initial_beta, population,initial_gamma, ndim, nwalkers, nsteps):
     t = np.arange(len(dates))
