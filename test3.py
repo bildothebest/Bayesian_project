@@ -8,34 +8,118 @@ from scipy.stats import norm
 import emcee
 import corner
 import os
-from funzioni import sir_model, run_sir_model, log_likelihood, log_prior, log_posterior, switzerland_data
+
+
+#from IPython import get_ipython  # For IPython utilities
+
+#get_ipython().run_line_magic('matplotlib', 'inline')
+
 
 
 dates, cases=switzerland_data()
 
- # Plot the observed data
+
+
+# Filter data for Switzerland
+CH_data = data[data['geoId'] == 'CH']  # select only Swiss data
+CH_data.loc[:, 'Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'] = (
+    CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].astype(float)
+)
+# Convert 'dateRep' column to datetime if needed and handle potential errors
+CH_data['dateRep'] = pd.to_datetime(CH_data['dateRep'], dayfirst=True, errors='coerce')
+
+# Extract dates and cases
+dates = CH_data['dateRep']
+cases = CH_data['Cumulative_number_for_14_days_of_COVID-19_cases_per_100000'].astype(float).values  # Ensure cases are in numeric format
+
+dates=dates[::-1]
+cases=cases[::-1]
+
+dates=dates[61:]
+
+cases=cases[61:]
+
+# Plot the observed data and the model prediction
 plt.figure(figsize=(12, 6))
 plt.plot(dates, cases, 'o', label='Observed cases')
 plt.xlabel('Date')
 plt.ylabel('Cumulative number of cases')
-plt.title('COVID-19 Data in Switzerland')
+plt.title('SIR Model Fit to COVID-19 Data in Switzerland')
 plt.legend()
 plt.grid()
 plt.show()
 
-
 dates_march=dates[0:31]
 cases_march=cases[0:31]*90
 # Time points in days
-
-print(dates_march)
-print(cases_march)
 
 t = np.arange(len(cases_march))
 
 # Total population
 N = 100000*90
 
+
+
+# SIR model differential equations
+def sir_model(y, t, beta, gamma, N):
+    S, I, R = y
+    dSdt = -beta * S * I / N
+    dIdt = beta * S * I / N - gamma * I
+    dRdt = gamma * I
+    return [dSdt, dIdt, dRdt] #Sistema di differenziali
+
+# Function to integrate the SIR equations
+def run_sir_model(t, beta, gamma, N, I0):
+    S0 = N - I0
+    R0 = 0
+    y0 = [S0, I0, R0]
+    ret = odeint(sir_model, y0, t, args=(beta, gamma, N))
+    S, I, R = ret.T
+    return S, I, R #Soluzioni delle differenziali given initial conditions
+
+# Log-likelihood function
+def log_likelihood(theta, t, N, cases):
+    beta, gamma = theta
+    # Check for valid parameter values
+    if beta <= 0 or gamma <= 0 or beta >= 1 or gamma >= 1:
+        return -np.inf
+    I0 = cases[0] # Initial number of infected individuals
+    S0 = N - I0
+    R0 = 0
+    y0 = [S0, I0, R0]
+    try:
+        ret = odeint(sir_model, y0, t, args=(beta, gamma, N))
+        S, I, R = ret.T
+    except:
+        return -np.inf
+
+
+    sigma = 1.0  # Assumed standard deviation of measurement errors
+    # Calculate the log-likelihood
+    ll = -0.5 * np.sum(((cases - I) / sigma)**2 + np.log(2 * np.pi * sigma**2))
+    return ll #log(likelyhood) funzione dei parametri 
+
+
+def log_prior(theta):
+    beta, gamma = theta
+    # Uniform prior for beta
+    if not (0 < beta < 1):
+        return -np.inf
+    # Uniform prior for gamma
+    if not (1/16 < gamma < 1/12):
+        return -np.inf
+    return 0  # Combine priors for beta and gamma
+
+
+# Log-posterior function
+def log_posterior(theta, t, N, cases):
+    lp = log_prior(theta)
+    if not np.isfinite(lp):
+        return -np.inf
+    ll = log_likelihood(theta, t, N, cases)
+    if not np.isfinite(ll):
+        return -np.inf
+    return lp + ll
 
 
 # Initial guesses for beta and gamma
@@ -129,7 +213,6 @@ plt.show()
 
 
 
-
 # =============================================================================
 # 
 # # Extract the samples for each parameter after burn-in (discard the first 200 steps)
@@ -162,4 +245,3 @@ plt.show()
 # plt.show()
 # 
 # =============================================================================
-
