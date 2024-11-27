@@ -1,12 +1,7 @@
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.integrate import odeint
-from scipy.stats import norm
-import emcee
-import corner
-import os
-from funzioni import sir_model, run_sir_model, log_likelihood, log_prior, log_posterior, switzerland_data, analisi_del_migaele_e_GPT
+from funzioni import switzerland_data, analisi_del_migaele_e_GPT
+
 
 
 
