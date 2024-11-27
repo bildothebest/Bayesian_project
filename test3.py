@@ -44,13 +44,13 @@ plt.legend()
 plt.grid()
 plt.show()
 
-dates_march=dates[0:31]
-cases_march=cases[0:31]*90
+dates_march=dates[1:31]
+cases_march=cases[1:31]
 # Time points in days
 t = np.arange(len(cases_march))
 
 # Total population
-N = 100000*90
+N = 100000
 
 
 # SIR model differential equations
