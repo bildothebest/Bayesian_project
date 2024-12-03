@@ -13,6 +13,28 @@ dates=dates[0:281]
 cases=cases[0:281]
 cases=cases*90
 
+population = 100000*90
+
+gamma = 1/14
+initial_beta=1/14
+
+nsteps = 1000   #numero di step per MCMC
+
+n_betas = 5  #numero di intervalli
+initial_betas = np.full(n_betas, initial_beta)
+
+
+def create_intervals(n, array_length):
+    
+    indices = np.linspace(0, array_length - 1, n, dtype=int)
+    return indices
+
+indices=create_intervals(n_betas+1, len(dates))
+
+
+initial_t_changes = indices[1:-1]
+
+
 
 
 
@@ -107,43 +129,10 @@ def log_posterior(theta, t, N, cases):
     return lp + ll
 
 
-
-
-
-population = 100000*90
-
-n_betas = 5  # Sostituisci con la lunghezza desiderata
-initial_betas = np.full(n_betas, 1/14)
-
-
-def create_intervals(n, array_length):
-    # Calcola gli indici che dividono l'array in n-1 intervalli
-    indices = np.linspace(0, array_length - 1, n, dtype=int)
-    return indices
-
-
-indices=create_intervals(n_betas+1, len(dates))
-print(indices)
-
-initial_t_changes = indices[1:-1]
-
-print(initial_t_changes)
-
-gamma = 1/14
  
 ndim = n_betas*2-1
 
 nwalkers = 50
-
-nsteps = 50
-
-
-# =============================================================================
-# for i, j in zip(segment_dates, segment_cases):
-#     beta_gamma_R0=analisi_del_migaele_e_GPT(i, j, initial_params, population, gamma, ndim, nwalkers, nsteps)
-# 
-# =============================================================================
-
 
 
 #def analisi_del_migaele_e_GPT(dates, cases, initial_params, population, initial_gamma, ndim, nwalkers, nsteps):
@@ -162,9 +151,6 @@ for i in range(nwalkers):
                 )[j]
             )
         
-
-
-
 
 # Set up the sampler
 sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(t, population, cases))
@@ -225,9 +211,6 @@ plt.show()
 
 n_posterior_samples = 200
 posterior_samples = samples[np.random.choice(len(samples), n_posterior_samples, replace=False)]
-
-
-
 
 
 posterior_predictive = []
