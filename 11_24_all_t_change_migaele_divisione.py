@@ -216,8 +216,8 @@ print(f"Estimated R0_5: {R0_5_mcmc:.4f} ± {R0_5_std:.4f}")
 
 
 samples = sampler.get_chain(discard=discard, thin=thin, flat=True)
-fig = corner.corner(samples, labels=["beta1", "beta2","beta3", "beta4", "beta5",'t_change_1','t_change_2','t_change_3','t_change_4'])
-plt.show()
+#fig = corner.corner(samples, labels=["beta1", "beta2","beta3", "beta4", "beta5",'t_change_1','t_change_2','t_change_3','t_change_4'])
+#plt.show()
 n_posterior_samples = 200
 posterior_samples = samples[np.random.choice(len(samples), n_posterior_samples, replace=False)]
 
