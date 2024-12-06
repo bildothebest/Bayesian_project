@@ -1,3 +1,5 @@
+
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -6,14 +8,17 @@ from scipy.stats import norm
 import emcee
 import corner
 import os
-from IPython import get_ipython  # For IPython utilities
 
 
-# Set working directory to the folder where the script is located
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+#from IPython import get_ipython  # For IPython utilities
 
-# Load the data with dates parsed in day-first format
-data = pd.read_csv('Asia_Countries_Cases.csv', dayfirst=True)
+#get_ipython().run_line_magic('matplotlib', 'inline')
+
+
+
+dates, cases=switzerland_data()
+
+
 
 # Filter data for Switzerland
 CH_data = data[data['geoId'] == 'CH']  # select only Swiss data
@@ -47,10 +52,12 @@ plt.show()
 dates_march=dates[1:31]
 cases_march=cases[1:31]
 # Time points in days
+
 t = np.arange(len(cases_march))
 
 # Total population
 N = 100000
+
 
 
 # SIR model differential equations
@@ -113,6 +120,7 @@ def log_posterior(theta, t, N, cases):
     if not np.isfinite(ll):
         return -np.inf
     return lp + ll
+
 
 # Initial guesses for beta and gamma
 initial_beta = 0.4
@@ -201,6 +209,7 @@ axes[3].grid()
 
 plt.tight_layout()
 plt.show()
+
 
 
 

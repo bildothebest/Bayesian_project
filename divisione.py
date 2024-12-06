@@ -6,6 +6,7 @@ from funzioni import switzerland_data, analisi_del_migaele_e_GPT
 
 
 
+
 dates, cases=switzerland_data()
 
 cases=cases*90
