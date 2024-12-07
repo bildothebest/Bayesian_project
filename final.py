@@ -182,32 +182,17 @@ sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, args=(t, populati
 print("Running MCMC...")
 sampler.run_mcmc(None, nsteps, progress=True)
 print("Done.")
-
+#%%
 # Get the samples
 discard=int(nsteps*0.2)
 thin=1
 
 samples = sampler.get_chain(discard=discard, thin=thin, flat=False)
 log_prob=sampler.get_log_prob(discard=discard, thin=thin, flat=False)
-blobs=sampler.get_blobs(discard=discard, thin=thin, flat=False)
-
-
-timewise_log_likelihood=blobs
-lppd_chain = np.log(np.mean(np.exp(timewise_log_likelihood), axis=0))
-p_waic_chain = np.var(timewise_log_likelihood, axis=0)
-# Check if the any of the terms in p_waic are too large, which indicates
-# a problem
-if np.any(p_waic_chain > 0.4):
-    print(f"Warning: Var[log p(y_i|theta)] > 0.4 for data points "
-          f"{np.argwhere(p_waic_chain > 0.4)}. p_WAIC unreliable!")
-# Sum up the partitions
-lppd = np.sum(lppd_chain)
-p_waic = np.sum(p_waic_chain)
-
-waic=-2*(lppd - p_waic)
 
 
 
+#Corner no R0
 samples = sampler.get_chain(discard=discard, thin=thin, flat=True)
 labels = [f"beta{i+1}" for i in range(n_betas)] + [f"t_change_{i+1}" for i in range(n_betas-1)]+[f"sigma_{i+1}" for i in range(n_betas)]
 fig = corner.corner(samples, labels=labels)
@@ -215,13 +200,10 @@ plt.show()
 
 
 
+#Model Predictiv
 n_posterior_samples = 200
 posterior_samples = samples[np.random.choice(len(samples), n_posterior_samples, replace=False)]
 posterior_samples = samples[-200:]
-
-
-
-
 
 posterior_predictive = []
 
@@ -257,13 +239,11 @@ for sample in posterior_samples:
 
 posterior_predictive = np.array(posterior_predictive)
 
-
-    
-
 mean_prediction = np.mean(posterior_predictive, axis=0)
 lower_bound = np.percentile(posterior_predictive, 2.5, axis=0)
 upper_bound = np.percentile(posterior_predictive, 97.5, axis=0)
 
+##Plot confidence interval
 plt.figure(figsize=(10, 6))
 plt.plot(t, cases, label="Observed Data", color="black", alpha=0.7)
 
@@ -275,7 +255,7 @@ plt.legend()
 plt.title("Posterior Predictive Plot with $t_c$")
 plt.show()
 
-
+##plot single simulations
 plt.figure(figsize=(12, 6))
 for trajectory in posterior_predictive:
     plt.plot(t, trajectory, color="blue", alpha=0.1)  # Individual trajectories
@@ -298,7 +278,6 @@ plt.show()
 # =============================================================================
 # Extract the samples for each parameter after burn-in (discard the first 200 steps)
 samples_trace = sampler.get_chain(discard=discard, flat=False)
-
 # Trace plot for each parameter
 fig, axes = plt.subplots(15, figsize=(15, 25), sharex=True)
 labels = ["beta1","beta2","beta3","beta4","beta5", 't_change1','t_change2','t_change3','t_change4',"sigma1","sigma2","sigma3","sigma4","sigma5"]
@@ -318,12 +297,31 @@ axes[14].grid()
 
 plt.tight_layout()
 plt.show()
-    #return beta_mcmc, gamma_mcmc, R0_mcmc, samples
+#return beta_mcmc, gamma_mcmc, R0_mcmc, samples
+
+
+# =============================================================================
+# #WAIC
+# =============================================================================
+blobs=sampler.get_blobs(discard=discard, thin=thin, flat=False)
+timewise_log_likelihood=blobs
+lppd_chain = np.log(np.mean(np.exp(timewise_log_likelihood), axis=0))
+p_waic_chain = np.var(timewise_log_likelihood, axis=0)
+# Check if the any of the terms in p_waic are too large, which indicates
+# a problem
+if np.any(p_waic_chain > 0.4):
+    print(f"Warning: Var[log p(y_i|theta)] > 0.4 for data points "
+          f"{np.argwhere(p_waic_chain > 0.4)}. p_WAIC unreliable!")
+# Sum up the partitions
+lppd = np.sum(lppd_chain)
+p_waic = np.sum(p_waic_chain)
+
+waic=-2*(lppd - p_waic)
 
 
 
 sampler.acceptance_fraction
-#%%
+#%%  Calculate R0 and do corner 
 samples = sampler.get_chain(discard=discard, thin=thin, flat=True)
 
 print(f"Number of samples: {samples.shape[0]}")
