@@ -460,6 +460,8 @@ def ppd_model_check(test_statistic, y, ppd, ppd_params):
 
     pte = (t_rep >= t_data).sum()/len(t_data)
     return pte, t_rep, t_data
+
+
 PPD_PTE_lin, t_rep_lin, t_data_lin = ppd_model_check(
     test_statistic=lambda y, theta: test_statistic(
         y, theta, x, y_err, linear_model),
