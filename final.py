@@ -749,6 +749,11 @@ def waic(sampler, discard):
     
     waic=-2*(lppd - p_waic)
     return(waic)
+blobs=sampler1.get_blobs(discard=discard1, thin=thin, flat=False)
+slices_with_neg_inf = np.any(np.isinf(blobs), axis=(0, 2))
+timewise_log_likelihood = blobs[:, ~slices_with_neg_inf, :]
+lppd_chain = np.log(np.mean(np.exp(timewise_log_likelihood), axis=0))
+p_waic_chain = np.var(timewise_log_likelihood, axis=0)
 
 def bayes_ratio(chain_1, log_prob_1, chain_2, log_prob_2):
 
